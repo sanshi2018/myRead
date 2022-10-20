@@ -1,0 +1,27 @@
+# Default ignored files
+/shelf/
+/workspace.xml
+# Datasource local storage ignored files
+/../../../../../../../:\Users\Sanshi\Desktop\myRead\AlogorithmsOfJava\.idea/dataSources/
+/dataSources.local.xml
+# Editor-based HTTP Client requests
+/httpRequests/
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/Evaluate.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/EX_1_3_09.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/EX_1_3_10_InfixToPostfix.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/EX_1_3_11_EvaluatePostfix.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/EX_1_3_14_RezizingArrayQueueOfString.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/EX_1_3_37_Josephus.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/EX_1_3_42.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/EX_1_3_47Catenation.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/LinkQueue.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/LinkQueue$Node.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/LinkStack.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/LinkStack$LinkIterator.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/LinkStack$Node.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/Parentheses134.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/pushItem.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/ResizingArrayStack.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/chapter1/ResizingArrayStack$ReverseArrayIterator.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/Text/Schedule.class
+AlogorithmsOfJava/out/production/AlogorithmsOfJava/Text/te.class

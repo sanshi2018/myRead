@@ -2086,3 +2086,225 @@ VBird Tsai <==嘿嘿！有数据产生喔！
 > ​	在第十章中，我们提到过 **$?** 这个变量所代表的意义， 此外，也通过 && 及 || 来作为前一个指令执 行回传值对于后一个指令是否要进行的依据。第十章的讨论中，**如果想要判断一个目录是否存在， 当时我 们使用的是 ls 这个指令搭配数据流重导向，最后配合 $? 来决定后续的指令进行与否。** 但是否有更简单的 方式可以来进行“条件判断”呢？有的～那就是“ test ”这个指令
 
 ### 12.3.1 利用 test 指令的测试功能
+
+当我要检测系统上面某些文件或者是相关的属性时，利用 test 这个指令来工作真是好用得不得了
+
+举例来说，我要检查 /dmtsai 是否存在时，使用：
+
+```shell
+[dmtsai@study ~]$ test -e /dmtsai
+```
+
+执行结果并不会显示任何讯息，但最后我们可以通过 $? 或 && 及 || 来展现整个结果呢！ 例如我们 在将上面的例子改写成这样：
+
+```shell
+[dmtsai@study ~]$ test -e /dmtsai && echo "exist" || echo "Not exist"
+Not exist <==结果显示不存在啊！
+```
+
+最终的结果可以告知我们是“exist”还是“Not exist”呢！
+
+那我知道 **-e 是测试一个“东西”在不在**， 如果 还想要测试一下该文件名是啥玩意儿时，还有哪些标志可以来判断的呢？
+
+![image-20221020162407460](LinuxImag/image-20221020162407460.png)
+
+![image-20221020162420548](LinuxImag/image-20221020162420548.png)
+
+![image-20221020162435950](LinuxImag/image-20221020162435950.png)
+
+现在我们就利用 test 来帮我们写几个简单的例子。
+
+- 这个文件是否存在，若不存在则给予一个“Filename does not exist”的讯息，并中断程序；
+- 若这个文件存在，则判断他是个文件或目录，结果输出“Filename is regular file”或 “Filename is directory”
+- 判断一下，执行者的身份对这个文件或目录所拥有的权限，并输出权限数据！
+
+```shell
+[dmtsai@study bin]$ vim file_perm.sh
+#!/bin/bash
+# Program:
+# User input a filename, program will check the flowing:
+# 1.） exist? 2.） file/directory? 3.） file permissions
+# History:
+# 2015/07/16 VBird First release
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+# 1. 让使用者输入文件名，并且判断使用者是否真的有输入字串？
+echo -e "Please input a filename, I will check the filename's type and permission. \n\n"
+read -p "Input a filename : " filename
+test -z ${filename} && echo "You MUST input a filename." && exit 0
+# 2. 判断文件是否存在？若不存在则显示讯息并结束脚本
+test ! -e ${filename} && echo "The filename '${filename}' DO NOT exist" && exit 0
+# 3. 开始判断文件类型与属性
+test -f ${filename} && filetype="regulare file"
+test -d ${filename} && filetype="directory"
+test -r ${filename} && perm="readable"
+test -w ${filename} && perm="${perm} writable"
+test -x ${filename} && perm="${perm} executable"
+# 4. 开始输出信息！
+echo "The filename: ${filename} is a ${filetype}"
+echo "And the permissions for you are : ${perm}"
+```
+
+> ​	如果你执行这个脚本后，他会依据你输入的文件名来进行检查喔！先看是否存在，再看为文件或目 录类型，最后判断权限。 但是你必须要注意的是，**由于 root 在很多权限的限制上面都是无效的，所以使用 root 执行这个脚本时， 常常会发现与 ls -l 观察到的结果并不相同！**所以，建议使用一般使用者来执行这个 脚本试看看
+
+### **12.3.2 利用判断符号 [ ]**
+
+> ​	**除了我们很喜欢使用的 test 之外**，其实，我们**还可以利用判断符号“ [ ] ”（就是中括号啦）** 来进行 数据的判断呢！ 
+
+举例来说，如果我想要知道 ${HOME} 这个变量是否为空的，可以这样做：
+
+```shell
+[dmtsai@study ~]$ [ -z "${HOME}" ] ; echo $?
+```
+
+> ​	使用中括号必须要特别注意，**因为中括号用在很多地方**，包括万用字符与正则表达式等等，所以如 **果要在 bash 的语法当中使用中括号作为 shell 的判断式时，必须要注意中括号的两端需要有空白字符来分隔 喔！** 假设我空白键使用“□”符号来表示，那么，在这些地方你都需要有空白键：
+
+> 你会发现鸟哥在上面的判断式当中使用了两个等号“ == ”。**其实在 bash 当中使用一个等号与两个等 号的结果是一样的**！ 不过在一般惯用程序的写法中，一个等号代表“变量的设置”，两个等号则是代 表“逻辑判断 （是与否之意）”。 由**于我们在中括号内重点在于“判断”而非“设置变量”，因此鸟哥建议您还是 使用两个等号较佳！**
+
+​	上面的例子在说明，两个字串 ${HOME} 与 ${MAIL} 是否相同的意思，相当于 test ${HOME} == ${MAIL} 的意思啦！ 而如果没有空白分隔，例如 [${HOME}==${MAIL}] 时，我们的 bash 就会显示错误讯 息了！这可要很注意啊！ 所以说，你最好要注意：
+
+- 在中括号 [] 内的每个元件都需要有空白键来分隔； 
+- 在中括号内的变量，最好都以双引号括号起来； 
+- 在中括号内的常数，最好都以单或双引号括号起来。
+
+为什么要这么麻烦啊？直接举例来说，假如我设置了 name="VBird Tsai" ，然后这样判定：
+
+```shell
+[dmtsai@study ~]$ name="VBird Tsai"
+[dmtsai@study ~]$ [ ${name} == "VBird" ]
+bash: [: too many arguments
+```
+
+> 见鬼了！怎么会发生错误啊？**bash 还跟我说错误是由于“太多参数 （arguments）”所致！** 为什么 呢？**因为 ${name} 如果没有使用双引号刮起来，那么上面的判定式会变成：**
+
+`[ VBird Tsai == "VBird" ]`
+
+上面肯定不对嘛！**因为一个判断式仅能有两个数据的比对**，**上面 VBird 与 Tsai 还有 "VBird" 就有三 个数据**！ 这不是我们要的！我们要的应该是下面这个样子：
+
+`[ "VBird Tsai" == "VBird" ]`
+
+​	这可是差很多的喔！另外，**中括号的使用方法与 test 几乎一模一样啊～** **只是中括号比较常用在条 件判断式 if ..... then ..... fi 的情况中就是了**。 
+
+好，那我们也使用中括号的判断来做一个小案例好了，案例设 置如下：
+
+1. 当执行一个程序的时候，这个程序会让使用者选择 Y 或 N ， 
+
+2. 如果使用者输入 Y 或 y 时，就显示“ OK, continue ” 
+
+3. 如果使用者输入 n 或 N 时，就显示“ Oh, interrupt ！” 
+
+4. 如果不是 Y/y/N/n 之内的其他字符，就显示“ I don't know what your choice is ”
+
+```shell
+#!/bin/bash
+# Program:
+# Program creates three files, which named by user's input and date command.
+# History:
+# 2015/07/16 VBird First release
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+
+#当执行一个程序的时候，这个程序会让使用者选择 Y 或 N ， 
+#若使用者选择了 Y 则执行，若选择了 N 则不执行。如果不是 Y/y/N/n 之内的其他字符，就显示“ I don't know what your choice is ”
+read -p "Please input (Y/N): " yn
+if [ "$yn" == "Y" ] || [ "$yn" == "y" ]; then
+    echo "OK, continue"
+    exit 0
+elif [ "$yn" == "N" ] || [ "$yn" == "n" ]; then
+    echo "Oh, interrupt!"
+    exit 0
+else
+    echo "I don't know what your choice is" && exit 0
+fi
+```
+
+利用中括号、 && 与 || 来继续吧
+
+```shell
+[dmtsai@study bin]$ vim ans_yn.sh
+#!/bin/bash
+# Program:
+# This program shows the user's choice
+# History:
+# 2015/07/16 VBird First release
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+read -p "Please input （Y/N）: " yn
+[ "${yn}" == "Y" -o "${yn}" == "y" ] && echo "OK, continue" && exit 0
+[ "${yn}" == "N" -o "${yn}" == "n" ] && echo "Oh, interrupt!" && exit 0
+echo "I don't know what your choice is" && exit 0
+```
+
+> ​	由于输入正确 （Yes） 的方法有大小写之分，不论输入大写 Y 或小写 y 都是可以的，此时判断式 内就得要有两个判断才行！ 由于是任何一个成立即可 （大写或小写的 y） ，所以这里使用 -o （或） 链接 两个判断喔！ 很有趣吧！利用这个字串判别的方法，我们就可以很轻松的将使用者想要进行的工作分门别 类呢！ 接下来，我们再来谈一些其他有的没有的东西吧
+
+### 12.3.3 Shell script 的默认变量（$0, $1...）
+
+> 我们知道指令可以带有选项与参数，例如 ls -la 可以察看包含隐藏文件的所有属性与权限。那么 shell script 能不能在脚本文件名后面带有参数呢？
+
+举例来说，如果你想要重新启动系统的网络
+
+```shell
+[dmtsai@study ~]$ file /etc/init.d/network
+/etc/init.d/network: Bourne-Again shell script, ASCII text executable
+# 使用 file 来查询后，系统告知这个文件是个 bash 的可执行 script 喔！
+[dmtsai@study ~]$ /etc/init.d/network restart
+```
+
+> ​	restart 是重新启动的意思，上面的指令可以“重新启动 /etc/init.d/network 这支程序”的意思！ 唔！那 么如果你在 /etc/init.d/network 后面加上 stop 呢？没错！就可以直接关闭该服务了！
+
+​	如果你要依据程序的执行给予一些变量去进行不同的任务时，本章一开始是使用 read 的功能！但 read 功能 的问题是你得要手动由键盘输入一些判断式。如果通过指令后面接参数， **那么一个指令就能够处理完毕而 不需要手动再次输入一些变量行为**！这样下达指令会比较简单方便啦！
+
+​	script 是怎么达成这个功能的呢？其实 script 针对参数已经有设置好一些变量名称了！对应如下：
+
+```shell
+/path/to/scriptname opt1 opt2 opt3 opt4
+		$0 			$1	 $2  $3   $4
+```
+
+​	这样够清楚了吧？**执行的脚本文件名为 $0 这个变量，第一个接的参数就是 $1 啊**～ 所以，只要我 们在 script 里面善用 $1 的话，就可以很简单的立即下达某些指令功能了！除了这些数字的变量之外， 我们 还有一些较为特殊的变量可以在 script 内使用来调用这些参数喔！
+
+- $# ：代表后接的参数“个数”，以上表为例这里显示为“ 4 ”；
+- $@ ：代表“ "$1" "$2" "$3" "$4" ”之意，每个变量是独立的（用双引号括起来）；
+- $* ：代表“ "$1c$2c$3c$4" ”，其中 c 为分隔字符，默认为空白键， 所以本例中代表“ "$1 $2 $3 $4" ”之 意。
+
+> 那个 $@ 与 $* 基本上还是有所不同啦！不过，一般使用情况下可以直接记忆 $@ 即可！
+
+好了，来 做个例子吧～假设我要执行一个可以携带参数的 script ，执行该脚本后屏幕会显示如下的数据：
+
+- 程序的文件名为何？ 
+- 共有几个参数？ 
+- 若参数的个数小于 2 则告知使用者参数数量太少 
+- 全部的参数内容为何？ 
+- 第一个参数为何？ 
+- 第二个参数为何
+
+```shell
+[dmtsai@study bin]$ vim how_paras.sh
+#!/bin/bash
+# Program:
+# Program shows the script name, parameters...
+# History:
+# 2015/07/16 VBird First release
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+echo "The script name is ==> ${0}"
+echo "Total parameter number is ==> $#"
+[ "$#" -lt 2 ] && echo "The number of parameter is less than 2. Stop here." && exit 0
+echo "Your whole parameter is ==> '$@'"
+echo "The 1st parameter ==> ${1}"
+echo "The 2nd parameter ==> ${2}"
+
+```
+
+result---
+
+```shell
+[dmtsai@study bin]$ sh how_paras.sh theone haha quot
+The script name is ==> how_paras.sh <==文件名
+Total parameter number is ==> 3 <==果然有三个参数
+Your whole parameter is ==> 'theone haha quot' <==参数的内容全部
+The 1st parameter ==> theone <==第一个参数
+The 2nd parameter ==> haha <==第二个参数
+
+```
+
