@@ -2308,3 +2308,298 @@ The 2nd parameter ==> haha <==第二个参数
 
 ```
 
+#### shift：造成参数变量号码偏移
+
+> 脚本后面所接的变量是否能够进行偏移 （shift） 呢？
+>
+> 我们将 how_paras.sh 的内容稍作变化一下，用来显示每次偏 移后参数的变化情况：
+
+```shell
+[dmtsai@study bin]$ vim shift_paras.sh
+#!/bin/bash
+# Program:
+# Program shows the effect of shift function.
+# History:
+# 2009/02/17 VBird First release
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+echo "Total parameter number is ==> $#"
+echo "Your whole parameter is ==> '$@'"
+shift 		# 进行第一次“一个变量的 shift ”
+echo "Total parameter number is ==> $#"
+echo "Your whole parameter is ==> '$@'"
+shift 3 	# 进行第二次“三个变量的 shift ”
+echo "Total parameter number is ==> $#"
+echo "Your whole parameter is ==> '$@'"
+```
+
+> 这玩意的执行成果如下：
+
+```shell
+[dmtsai@study bin]$ sh shift_paras.sh one two three four five six <==给予六个参数
+Total parameter number is ==> 6 <==最原始的参数变量情况
+Your whole parameter is ==> 'one two three four five six'
+Total parameter number is ==> 5 <==第一次偏移，看下面发现第一个 one 不见了
+Your whole parameter is ==> 'two three four five six'
+Total parameter number is ==> 2 <==第二次偏移掉三个，two three four 不见了
+Your whole parameter is ==> 'five six'
+```
+
+光看结果你就可以知道啦，那个 **shift 会移动变量，而且 shift 后面可以接数字**，代表拿掉最前面的 几个参数的意思。 上面的执行结果中，第一次进行 shift 后他的显示情况是“ one two three four five six”，所 以就剩下五个啦！第二次直接拿掉三个，就变成“ t~~wo three four five~~ six ”啦！ 这样这个案例可以了解了吗？ 理解了 shift 的功能了吗？12.4 条件判断式
+
+## 12.4 条件判断式
+
+> ​	只要讲到“程序”的话，那么条件判断式，亦即是“ if then ”这种判别式肯定一定要学习的！ 因为很 多时候，我们都必须要依据某些数据来判断程序该如何进行。举例来说，我们在上头的 ans_yn.sh 讨论输入 回应的范例中不是有练习当使用者输入 Y/N 时，必须要执行不同的讯息输出吗？简单的方式可以利用 && 与 || ，但如果我还想要执行一堆指令呢？那真的得要 if then 来帮忙啰～下面我们就来聊一聊！
+
+### 12.4.1 利用 if .... then
+
+> ​	这个 if .... then 是最常见的条件判断式了～简单的说，就是当符合某个条件判断的时候， 就予以进 行某项工作就是了。这个 if ... then 的判断还有多层次的情况！我们分别介绍如下：
+
+#### 单层、简单条件判断式
+
+​	如果你只有一个判断式要进行，那么我们可以简单的这样看：
+
+```shell
+if [ 条件判断式 ]; then 当条件判断式成立时，可以进行的指令工作内容；
+fi <==将 if 反过来写，就成为 fi 啦！结束 if 之意！
+```
+
+至于条件判断式的判断方法，与前一小节的介绍相同啊！较特别的是，**如果我有多个条件要判别 时， 除了 ans_yn.sh 那个案例所写的** `[ "${yn}" == "Y" -o "${yn}" == "y" ]`，也就是“**将多个条件写入一个中括号内的情况**”之外， 我**还可以有多 个中括号来隔开喔**！
+
+**括号与括号之间，则以 && 或 || 来隔开**，他们的意义是
+
+- && 代表 AND
+- || 代表 or 
+
+在使用中括号的判断式中， && 及 || 就与指令下达的状态不同了。
+
+举例来说， ans_yn.sh 里 面的判断式可以这样修改：
+
+`[ "${yn}" == "Y" -o "${yn}" == "y" ]` 
+
+上式可替换为 
+
+`[ "${yn}" == "Y" ] || [ "${yn}" == "y" ]`
+
+之所以这样改，很多人是习惯问题！很多人则是喜欢一个中括号仅有一个判别式的原因。
+
+现在我们来将 ans_yn.sh 这个脚本修改成为 if ... then 的样式来看看：
+
+```shell
+#!/bin/bash
+# Program:
+# This program shows the user's choice
+# History:
+# 2015/07/16 VBird First release
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+read -p "Please input （Y/N）: " yn
+if [ "${yn}" == "Y" ] || [ "${yn}" == "y" ]; then
+echo "OK, continue"
+exit 0
+fi
+if [ "${yn}" == "N" ] || [ "${yn}" == "n" ]; then
+echo "Oh, interrupt!"
+exit 0
+fi
+echo "I don't know what your choice is" && exit 0
+```
+
+​	不过，由这个例子看起来，似乎也没有什么了不起吧？原本的 ans_yn.sh 还比较简单呢～ 但是如果 以逻辑概念来看，其实上面的范例中，我们使用了两个条件判断呢！明明仅有一个 ${yn} 的变量，为何需 要进行两次比对呢？ 此时，多重条件判断就能够来测试测试啰！
+
+#### 多重、复杂条件判断式
+
+> ​	在同一个数据的判断中，如果该数据需要进行多种不同的判断时，应该怎么作？
+
+​	举例来说，上面的 ans_yn.sh 脚本中，我们只要进行一次 ${yn} 的判断就好 （仅进行一次 if ），不想要作多次 if 的判断。 此 时你就得要知道下面的语法了：
+
+```shell
+# 一个条件判断，分成功进行与失败进行 （else）
+if [ 条件判断式 ]; then 当条件判断式成立时，可以进行的指令工作内容；
+else 当条件判断式不成立时，可以进行的指令工作内容；
+fi
+```
+
+如果考虑更复杂的情况，则可以使用这个语法
+
+```shell
+# 多个条件判断 （if ... elif ... elif ... else） 分多种不同情况执行
+if [ 条件判断式一 ]; then 当条件判断式一成立时，可以进行的指令工作内容；
+elif [ 条件判断式二 ]; then 当条件判断式二成立时，可以进行的指令工作内容；
+else 当条件判断式一与二均不成立时，可以进行的指令工作内容；
+fi
+```
+
+> 你得要注意的是， elif 也是个判断式，因此出现 elif 后面都要接 then 来处理！但是 else 已经是最后 的没有成立的结果了， 所以 else 后面并没有 then 喔！
+
+我们来将 ans_yn-2.sh 改写成这样：
+
+```shell
+[dmtsai@study bin]$ cp ans_yn-2.sh ans_yn-3.sh
+[dmtsai@study bin]$ vim ans_yn-3.sh
+#!/bin/bash
+# Program:
+# This program shows the user's choice
+# History:
+# 2015/07/16 VBird First release
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+read -p "Please input （Y/N）: " yn
+if [ "${yn}" == "Y" ] || [ "${yn}" == "y" ]; then
+echo "OK, continue"
+elif [ "${yn}" == "N" ] || [ "${yn}" == "n" ]; then
+echo "Oh, interrupt!"
+else
+echo "I don't know what your choice is"
+fi
+```
+
+​	一般来说，如果你不希望使用者由键盘输入额外 的数据时， **可以使用上一节提到的参数功能 （$1）！让使用者在下达指令时就将参数带进去**！ 现在我们想 让使用者输入“ hello ”这个关键字时，利用参数的方法可以这样依序设计：
+
+1. 判断 $1 是否为 hello，如果是的话，就显示 "Hello, how are you ?"；
+2.  如果没有加任何参数，就提示使用者必须要使用的参数下达法；
+3.  而如果加入的参数不是 hello ，就提醒使用者仅能使用 hello 为参数。
+
+```shell
+[dmtsai@study bin]$ vim hello-2.sh
+#!/bin/bash
+# Program:
+# Check $1 is equal to "hello"
+# History:
+# 2015/07/16 VBird First release
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+if [ "${1}" == "hello" ]; then
+echo "Hello, how are you ?"
+elif [ "${1}" == "" ]; then
+echo "You MUST input parameters, ex> {${0} someword}"
+else
+echo "The only parameter is 'hello', ex> {${0} hello}"
+fi
+```
+
+**netstat 的指令，这个指令可 以查询到目前主机有打开的网络服务端口** （service ports），我可以**利用“ netstat -tuln ”来取得目前主机有启动的服务**， 而且取得的信息有点像这样：
+
+```shell
+[dmtsai@study ~]$ netstat -tuln
+Active Internet connections （only servers）
+Proto Recv-Q Send-Q Local Address Foreign Address State
+tcp 0 0 0.0.0.0:22 0.0.0.0:* LISTEN
+tcp 0 0 127.0.0.1:25 0.0.0.0:* LISTEN
+tcp6 0 0 :::22 :::* LISTEN
+tcp6 0 0 ::1:25 :::* LISTEN
+udp 0 0 0.0.0.0:123 0.0.0.0:*
+udp 0 0 0.0.0.0:5353 0.0.0.0:*
+udp 0 0 0.0.0.0:44326 0.0.0.0:*
+udp 0 0 127.0.0.1:323 0.0.0.0:*
+udp6 0 0 :::123 :::*
+udp6 0 0 ::1:323 :::*
+#封包格式 本地IP:端口 远端IP:端口 是否监听
+```
+
+> ​	上面的重点是“`Local Address （本地主机的IP与端口对应）`”那个字段，**他代表的是本机所启动的网 络服务**！ **IP的部分说明的是该服务位于那个接口上**，若为 **127.0.0.1 则是仅针对本机开放，若是 0.0.0.0 或 ::: 则代表对整个 Internet 开放** （更多信息请参考服务器架设篇的介绍）。 每个端口 （port） 都有其特定的网 络服务，几个常见的 port 与相关网络服务的关系是：
+
+- 80: WWW 
+- 22: ssh 
+- 21: ftp 
+- 25: mail 
+- 111: RPC（远端程序调用） 
+- 631: CUPS（打印服务功能）
+
+> ​	假设我的主机有兴趣要侦测的是比较常见的 port 21, 22, 25及 80 时，那我如何**通过 netstat 去侦测我 的主机是否有打开这四个主要的网络服务端口呢？**由于**每个服务的关键字都是接在冒号“ : ”后面， 所以可 以借由撷取类似“ :80 ”来侦测的**！那我就可以简单的这样去写这个程序喔：
+
+在台湾当兵是国民应尽的义务，不过，在当兵的时候总是很想要退伍的！ 那 你能不能写个脚本程序来跑，让使用者输入他的退伍日期，让你去帮他计算还有几天才退伍？
+
+> ​	由于日期是要用相减的方式来处置，所以我们可以通过使用 **date 显示日期与时间，将他转为由 1970-01-01 累积而来的秒数， 通过秒数相减来取得剩余的秒数后，再换算为日数即可。**整个脚本的制作流 程有点像这样：
+
+- 先让使用者输入他们的退伍日期；
+- 再由现在日期比对退伍日期；
+- 由两个日期的比较来显示“还需要几天”才能够退伍的字样。
+
+> 利用`date --date="YYYYMMDD" +%s` 转成秒数
+
+### 12.4.2 利用 case ..... esac 判断（switch...case）
+
+> 上个小节提到的“ if .... then .... fi ”对于变量的判断是以“比对”的方式来分辨的， 如果符合状态就进 行某些行为，并且通过较多层次 （就是 elif ...） 的方式来进行多个变量的程序码撰写，譬如 hello-2.sh 那个 小程序，就是用这样的方式来撰写的啰。
+
+> 那么万一我有多个既定的变量内容，例如 hello-2.sh 当中，我 所需要的变量就是 "hello" 及空字串两个， 那么我只要针对这两个变量来设置状况就好了
+>
+> 那么可以 使用什么方式来设计呢？呵呵～就用 case ... in .... esac 吧～
+
+```shell
+case ${变量名称} in <==关键字为 case ，还有变量前有钱字号
+"第一个变量内容"） <==每个变量内容建议用双引号括起来，关键字则为小括号 ）
+程序段
+;; <==每个类别结尾使用两个连续的分号来处理！
+"第二个变量内容"）
+程序段
+;;
+*） <==最后一个变量内容都会用 * 来代表所有其他值
+不包含第一个变量内容与第二个变量内容的其他程序执行段
+exit 1
+;;
+esac 
+```
+
+> ​	要注意的是，**这个语法以 case （实际案例之意） 为开头，结尾自然就是将 case 的英文反过来写！** 就成为 esac 啰！ 不会很难背啦！**另外，每一个变量内容的程序段最后都需要两个分号 （;;） 来代表该程序 段落的结束**，这挺重要的喔！ 至于为何需要有 * 这个变量内容在最后呢？这是因为，如果使用者不是输入 变量内容一或二时， 我们可以告知使用者相关的信息啊！
+
+我们拿 hello-2.sh 的案例来修改一下， 他应该会变成这样喔：
+
+```shell
+[dmtsai@study bin]$ vim hello-3.sh
+#!/bin/bash
+# Program:
+# Show "Hello" from $1.... by using case .... esac
+# History:
+# 2015/07/16 VBird First release
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+case ${1} in
+"hello"）
+echo "Hello, how are you ?"
+;;
+""）
+echo "You MUST input parameters, ex> {${0} someword}"
+;;
+*） # 其实就相当于万用字符，0~无穷多个任意字符之意！
+echo "Usage ${0} {hello}"
+;;
+esac
+```
+
+一般来说，使用“ case $变量 in ”这个语法中，当中的那个“ $变量 ”大致有两种取得的方式：
+
+- **直接下达式：**例如上面提到的，利用 `script.sh variable`  的方式来直接给予 $1 这个变量的内容，这也 是在 /etc/init.d 目录下大多数程序的设计方式。
+- **互动式：**通过 read 这个指令来让使用者输入变量的内容。
+
+
+
+```shell
+[dmtsai@study bin]$ vim show123.sh
+#!/bin/bash
+# Program:
+# This script only accepts the flowing parameter: one, two or three.
+# History:
+# 2015/07/17 VBird First release
+PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin
+export PATH
+echo "This program will print your selection !"
+# read -p "Input your choice: " choice # 暂时取消，可以替换！
+# case ${choice} in # 暂时取消，可以替换！
+case ${1} in # 现在使用，可以用上面两行替换！
+"one"）
+echo "Your choice is ONE"
+;;
+"two"）
+echo "Your choice is TWO"
+;;
+"three"）
+echo "Your choice is THREE"
+;;
+*）
+echo "Usage ${0} {one|two|three}"
+;;
+esac
+```
+
+> ​	此时，你可以使用“ sh show123.sh two ”的方式来下达指令，就可以收到相对应的回应了。 上面使 用的是直接下达的方式，而如果使用的是互动式时，那么将上面第 10, 11 行的 "#" 拿掉， 并将 12 行加上注 解 （#），就可以让使用者输入参数啰～这样是否很有趣啊？
