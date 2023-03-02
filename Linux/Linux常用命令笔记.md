@@ -329,6 +329,129 @@ WatchedEvent state:SyncConnected type:None path:null
 
 7.开启对外端口
 
+## 查看zookeeper注册中心是否有注册服务
+
+1）查找zookeeper的目录； 
+
+```shell
+find / -name zookeeper
+```
+
+2）进入zookeeper的bin目录；
+
+```shell
+cd Desktop/Myproject/zk/zookeeper-3.4.9/bin/
+```
+
+3）执行zkcli.sh命令，如图1； 
+
+```shell
+./zkCli.sh
+```
+
+4）查看有哪些zookeeper节点；
+
+```shell
+ ls /
+```
+
+5）查看注册了哪些服务，如图2；
+
+```shell
+ ls /daily_orderServer_group（节点名称）
+```
+
+## 安装Mongodb 4.0
+
+```shell
+vim /etc/yum.repos.d/mongodb-org-4.0.repo
+```
+
+```shell
+[mngodb-org]
+name=MongoDB Repository
+baseurl=http://mirrors.aliyun.com/mongodb/yum/redhat/7Server/mongodb-org/4.0/x86_64/
+gpgcheck=0
+enabled=1
+```
+
+```shell
+yum -y install mongodb-org
+```
+
+```shell
+[sanshi@192 ~]$ whereis mongod
+mongod: /usr/bin/mongod /etc/mongod.conf /usr/share/man/man1/mongod.1.gz
+```
+
+修改IP地址
+
+```shell
+vim /etc/mongod.conf 
+
+bindIp: 172.0.0.1  改为 bindIp: 0.0.0.0
+```
+
+启动MongoDB
+
+```shell
+启动mongodb ：sudo systemctl start mongod.service
+停止mongodb ：sudo systemctl stop mongod.service
+```
+
+查询启动状态
+
+```shell
+查到mongodb的状态：systemctl status mongod.service
+```
+
+```shell
+● mongod.service - MongoDB Database Server
+   Loaded: loaded (/usr/lib/systemd/system/mongod.service; enabled; vendor preset: disabled)
+   Active: inactive (dead)
+     Docs: https://docs.mongodb.org/manual
+[sanshi@192 ~]$ systemctl status mongod.service
+● mongod.service - MongoDB Database Server
+   Loaded: loaded (/usr/lib/systemd/system/mongod.service; enabled; vendor preset: disabled)
+   Active: active (running) since 六 2023-01-07 21:57:01 CST; 5s ago
+     Docs: https://docs.mongodb.org/manual
+  Process: 11593 ExecStart=/usr/bin/mongod $OPTIONS (code=exited, status=0/SUCCESS)
+  Process: 11589 ExecStartPre=/usr/bin/chmod 0755 /var/run/mongodb (code=exited, status=0/SUCCESS)
+  Process: 11586 ExecStartPre=/usr/bin/chown mongod:mongod /var/run/mongodb (code=exited, status=0/SUCCESS)
+  Process: 11584 ExecStartPre=/usr/bin/mkdir -p /var/run/mongodb (code=exited, status=0/SUCCESS)
+ Main PID: 11596 (mongod)
+    Tasks: 28
+   CGroup: /system.slice/mongod.service
+           └─11596 /usr/bin/mongod -f /etc/mongod.conf
+
+1月 07 21:56:59 192.168.0.109 systemd[1]: Starting MongoDB Database Server...
+1月 07 21:56:59 192.168.0.109 mongod[11593]: about to fork child process, w....
+1月 07 21:56:59 192.168.0.109 mongod[11593]: forked process: 11596
+1月 07 21:57:01 192.168.0.109 systemd[1]: Started MongoDB Database Server.
+Hint: Some lines were ellipsized, use -l to show in full.
+
+```
+
+外网访问开放端口
+
+设置开机启动
+
+```shell
+systemctl enable mongod.service
+```
+
+启动Mongo shell
+
+```shell
+mongo
+```
+
+需要的话启用权限控制：
+
+编辑mongod.conf注释bindIp,并重启mongodb.
+vim /etc/mongod.conf
+
+重启mongodb：systemctl restart mongod.service
 
 
 ## Docker安装RabbitMq
@@ -756,6 +879,14 @@ Deleted: sha256:97ca462ad9eeae25941546209454496e1d66749d53dfa2ee32bf1faabd239d38
 > 启动容器有两种方式，一种是基于镜像新建一个容器并启动，另外一个是将在终止状态（`exited`）的容器重新启动。
 >
 > 因为 Docker 的容器实在太轻量级了，很多时候用户都是随时删除和新创建容器。
+
+#### 查看容器的ip
+
+```shell
+docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' containerId
+```
+
+
 
 #### 新建并启动
 
