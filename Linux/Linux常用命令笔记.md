@@ -492,7 +492,7 @@ docker run -d --name rabbitmq3.7.7 -p 5672:5672 -p 15672:15672 -v `pwd`/data:/va
 
 --hostname  主机名（RabbitMQ的一个重要注意事项是它根据所谓的 “节点名称” 存储数据，默认为主机名）；
 
--e 指定环境变量；（RABBITMQ_DEFAULT_VHOST：默认虚拟机名；RABBITMQ_DEFAULT_USER：默认的用户名；RABBITMQ_DEFAULT_PASS：默认用户名的密码）
+-e 指定环境变量；（**RABBITMQ_DEFAULT_VHOST：默认虚拟机名**；RABBITMQ_DEFAULT_USER：默认的用户名；RABBITMQ_DEFAULT_PASS：默认用户名的密码）
 
 5、使用命令：docker ps 查看正在运行容器
 
@@ -501,6 +501,134 @@ docker run -d --name rabbitmq3.7.7 -p 5672:5672 -p 15672:15672 -v `pwd`/data:/va
 6、可以使用浏览器打开web管理端：http://Server-IP:15672
 
 ![img](LinuxImag/1107037-20180810001642216-1307723408.png)
+
+## Docker安装ZK
+
+1、docker拉取zookeeper镜像
+
+```shell
+docker search zookeeper # 搜索镜像
+docker pull zookeeper:3.4.9  # 拉取指定版本zk镜像
+docker images  # 查看image ID
+mkdir -p /root/docker/zookeeper/data #用于映射目录
+docker run -d -p 2181:2181 -v /root/docker/zookeeper/data:/data/ --name zookeeper --privileged 3b83d9104a4c # 启动zookeeper实例，最后的3b83d9104a4c为image ID，中间是做了目录映射，将容器内的数据目录挂载到宿主机目录，防止数据丢失
+```
+
+2、进入容器
+
+这个主要是为了在本机连接[zookeeper](https://so.csdn.net/so/search?q=zookeeper&spm=1001.2101.3001.7020)服务，如果zookeeper服务在虚拟机，想要在本地windows连接则无需该步骤。
+
+```shell
+docker ps # 查看zookeeper的CONTAINER ID
+docker exec -it CONTAINERID /bin/bash  # 后台进入容器
+```
+
+
+
+## Docker安装Mysql57
+
+Docker下安装MySQL
+Docker下安装并使用MySQL有两种方式，第一使用远程仓库镜像，第二自定义镜像。
+
+【1】使用Hub镜像安装MySQL
+从Hub镜像安装软件常规步骤
+
+搜索镜像、拉取镜像、查看镜像、启动镜像、停止容器与移除容器。
+
+【1】使用Hub镜像安装MySQL
+从Hub镜像安装软件常规步骤
+
+搜索镜像、拉取镜像、查看镜像、启动镜像、停止容器与移除容器。
+
+① 搜索MySQL镜像
+
+```shell
+docker search mysql
+```
+
+② 从docker hub上(阿里云加速器)拉取mysql镜像到本地
+
+如下所示，拉去MySQL5.7：
+
+```shell
+docker pull mysql:5.7
+```
+
+③ 创建容器实例并运行
+
+命令如下：
+
+```shell
+docker run -p 3306:3306 --name mysql -v /mydocker/mysql/conf:/etc/mysql/conf.d -v /mydocker/mysql/logs:/var/log/mysql -v /mydocker/mysql/data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=123456 -d mysql:5.7 --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+```
+
+> 命令解释说明：
+>
+> -p 3306:3306：将主机的3306端口映射到docker容器的3306端口。
+> --name mysql：运行服务名字
+> -v /mydocker/mysql/conf:/etc/mysql/conf.d ：将主机/mydocker/mysql录下的conf/my.cnf 挂载到容器的 /etc/mysql/conf.d
+> -v /mydocker/mysql/logs:/var/log/mysql：将主机/mydocker/mysql目录下的 logs 目录挂载到容器的 /logs。
+> -v /mydocker/mysql/data:/var/lib/mysql ：将主机/mydocker/mysql目录下的data目录挂载到容器的 /var/lib/mysql
+> -e MYSQL_ROOT_PASSWORD=123456：初始化 root 用户的密码。
+> -d mysql:5.7 : 后台程序运行mysql5.7
+> --character-set-server=utf8mb4 ：设置字符集
+> --collation-server=utf8mb4_unicode_ci：设置校对集
+
+然后在/mydocker/mysql/conf编辑你的数据库配置文件即可,如下所示：
+
+```shell
+[mysql]
+#设置mysql客户端默认字符集
+default-character-set=utf8
+socket=/var/lib/mysql/mysql.sock
+
+[mysqld]
+#mysql5.7以后的不兼容问题处理
+sql_mode=NO_ENGINE_SUBSTITUTION,STRICT_TRANS_TABLES
+datadir=/var/lib/mysql
+socket=/var/lib/mysql/mysql.sock
+# Disabling symbolic-links is recommended to prevent assorted security risks
+symbolic-links=0
+# Settings user and group are ignored when systemd is used.
+# If you need to run mysqld under a different user or group,
+# customize your systemd unit file for mariadb according to the
+# instructions in http://fedoraproject.org/wiki/Systemd
+#允许最大连接数
+max_connections=200
+#服务端使用的字符集默认为8比特编码的latin1字符集
+character-set-server=utf8
+#创建新表时将使用的默认存储引擎
+default-storage-engine=INNODB
+lower_case_table_names=1
+max_allowed_packet=16M 
+#设置时区
+default-time_zone='+8:00'
+[mysqld_safe]
+log-error=/var/log/mariadb/mariadb.log
+pid-file=/var/run/mariadb/mariadb.pid
+
+#
+# include all files from the config directory
+#
+!includedir /etc/mysql/conf.d/
+!includedir /etc/mysql/mysql.conf.d/
+```
+
+
+
+```shell
+[root@localhost conf]# pwd
+/mydocker/mysql/conf
+[root@localhost conf]# ll
+total 4
+-rw-r--r--. 1 root root 1379 Feb 20 07:40 my.cnf
+```
+
+可以查看容器日志：
+
+```shell
+docker logs -f -t --tail 100   containerId
+```
 
 
 
